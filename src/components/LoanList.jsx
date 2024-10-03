@@ -33,6 +33,9 @@ function LoanList() {
                 <Typography color="textSecondary">
                   Checkout Date: {new Date(loan.CheckoutDate).toLocaleDateString()}
                 </Typography>
+                <Typography color="textSecondary">
+                  Return Date: {new Date(loan.ReturnDate).toLocaleDateString()}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>

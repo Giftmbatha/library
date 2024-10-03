@@ -5,6 +5,7 @@ import { TextField, Button, Container, Select, MenuItem, FormControl, InputLabel
 function AddLoanForm() {
   const [bookId, setBookId] = useState('');
   const [memberId, setMemberId] = useState('');
+  const [returnDate, setReturnDate] = useState('');
   const [checkoutDate, setCheckoutDate] = useState('');
   const [books, setBooks] = useState([]);
   const [members, setMembers] = useState([]);
@@ -21,7 +22,7 @@ function AddLoanForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.post('http://localhost:5000/api/loans', { BookID: bookId, MemberID: memberId, CheckoutDate: checkoutDate })
+    axios.post('http://localhost:5000/api/loans', { BookID: bookId, MemberID: memberId, ReturnDate: returnDate, CheckoutDate: checkoutDate })
       .then(response => {
         console.log('Loan added successfully');
         setBookId('');
@@ -76,6 +77,15 @@ function AddLoanForm() {
           type="date"
           value={checkoutDate}
           onChange={e => setCheckoutDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          fullWidth
+          required
+        />
+         <TextField
+          label="Return Date"
+          type="date"
+          value={returnDate}
+          onChange={e => setReturnDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
           fullWidth
           required
