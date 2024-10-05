@@ -1,150 +1,253 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import {
-  TextField, Typography,Button, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, TablePagination, IconButton, Dialog,
-  DialogActions, DialogContent, DialogContentText, DialogTitle
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 
 function BookList() {
   const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [bookToDelete, setBookToDelete] = useState(null);
-  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [booksPerPage] = useState(5);
+  const [editingBook, setEditingBook] = useState(null);
 
   useEffect(() => {
     fetchBooks();
   }, []);
 
   const fetchBooks = () => {
-    axios.get('http://localhost:5000/api/books')
-      .then(response => setBooks(response.data))
+    fetch('http://localhost:5000/api/books')
+      .then(response => response.json())
+      .then(data => setBooks(data))
       .catch(error => console.error('Error fetching books:', error));
   };
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
-    setPage(0);
+    setCurrentPage(1);
   };
 
-  const handleDeleteClick = (book) => {
-    setBookToDelete(book);
-    setOpenDeleteDialog(true);
+  const handleDelete = (bookId) => {
+    if (window.confirm('Are you sure you want to delete this book?')) {
+      fetch(`http://localhost:5000/api/books/${bookId}`, { method: 'DELETE' })
+        .then(() => {
+          setBooks(books.filter(book => book.BookID !== bookId));
+        })
+        .catch(error => console.error('Error deleting book:', error));
+    }
   };
 
-  const handleDeleteConfirm = () => {
-    axios.delete(`http://localhost:5000/api/books/${bookToDelete.BookID}`)
-      .then(() => {
-        setBooks(books.filter(book => book.BookID !== bookToDelete.BookID));
-        setOpenDeleteDialog(false);
-        setBookToDelete(null);
+  const handleEdit = (book) => {
+    setEditingBook({ ...book });
+  };
+
+  const handleSave = () => {
+    fetch(`http://localhost:5000/api/books/${editingBook.BookID}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editingBook),
+    })
+      .then(response => response.json())
+      .then(updatedBook => {
+        setBooks(books.map(book => book.BookID === updatedBook.BookID ? updatedBook : book));
+        setEditingBook(null);
       })
-      .catch(error => console.error('Error deleting book:', error));
+      .catch(error => console.error('Error updating book:', error));
   };
 
-  const handleDeleteCancel = () => {
-    setOpenDeleteDialog(false);
-    setBookToDelete(null);
+  const handleChange = (e) => {
+    setEditingBook({ ...editingBook, [e.target.name]: e.target.value });
   };
-
- const handleEditClick = (book) => {
-  navigate(`/edit-book/${book.BookID}`);
-};
 
   const filteredBooks = books.filter(book =>
     book.Title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     book.Author.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div>
-      <Typography variant="h4" gutterBottom>
-        Book List
-      </Typography>
-      <TextField
-        label="Search books"
-        variant="outlined"
+    <div className="book-list">
+      <h2>Book List</h2>
+      <input
+        type="text"
+        placeholder="Search books"
         value={searchTerm}
         onChange={handleSearchChange}
-        fullWidth
-        style={{ marginBottom: '1rem' }}
+        className="search-input"
       />
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Title</TableCell>
-              <TableCell>Author</TableCell>
-              <TableCell>ISBN</TableCell>
-              <TableCell align="right">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredBooks
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map(book => (
-                <TableRow key={book.BookID}>
-                  <TableCell>{book.Title}</TableCell>
-                  <TableCell>{book.Author}</TableCell>
-                  <TableCell>{book.ISBN}</TableCell>
-                  <TableCell align="right">
-                    <IconButton color="primary" onClick={() => handleEditClick(book)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton color="secondary" onClick={() => handleDeleteClick(book)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={filteredBooks.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>ISBN</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {currentBooks.map(book => (
+            <tr key={book.BookID}>
+              <td>{editingBook && editingBook.BookID === book.BookID ? 
+                <input name="Title" value={editingBook.Title} onChange={handleChange} /> : 
+                book.Title}
+              </td>
+              <td>{editingBook && editingBook.BookID === book.BookID ? 
+                <input name="Author" value={editingBook.Author} onChange={handleChange} /> : 
+                book.Author}
+              </td>
+              <td>{editingBook && editingBook.BookID === book.BookID ? 
+                <input name="ISBN" value={editingBook.ISBN} onChange={handleChange} /> : 
+                book.ISBN}
+              </td>
+              <td>
+                {editingBook && editingBook.BookID === book.BookID ? (
+                  <>
+                    <button onClick={handleSave}>Save</button>
+                    <button onClick={() => setEditingBook(null)}>Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => handleEdit(book)}>Edit</button>
+                    <button onClick={() => handleDelete(book.BookID)}>Delete</button>
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="pagination">
+        {Array.from({ length: Math.ceil(filteredBooks.length / booksPerPage) }, (_, i) => (
+          <button key={i} onClick={() => paginate(i + 1)} className={currentPage === i + 1 ? 'active' : ''}>
+            {i + 1}
+          </button>
+        ))}
+      </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={openDeleteDialog}
-        onClose={handleDeleteCancel}
-      >
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete the book titled "{bookToDelete?.Title}"?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleDeleteConfirm} color="secondary">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <style jsx>{`
+        .book-list {
+          max-width: 1000px;
+          margin: 0 auto;
+          padding: 2rem;
+        }
+
+        h2 {
+          text-align: center;
+          color: #333;
+          margin-bottom: 2rem;
+        }
+
+        .search-input {
+          width: 100%;
+          padding: 0.5rem;
+          margin-bottom: 1rem;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          background-color: #fff;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+          padding: 1rem;
+          text-align: left;
+          border-bottom: 1px solid #ddd;
+        }
+
+        th {
+          background-color: #f8f8f8;
+          font-weight: bold;
+        }
+
+        tr:hover {
+          background-color: #f5f5f5;
+        }
+
+        button {
+          padding: 0.5rem 1rem;
+          margin-right: 0.5rem;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+          opacity: 0.8;
+        }
+
+        button:first-child {
+          background-color: #4CAF50;
+          color: white;
+        }
+
+        button:last-child {
+          background-color: #f44336;
+          color: white;
+        }
+
+        .pagination {
+          display: flex;
+          justify-content: center;
+          margin-top: 2rem;
+        }
+
+        .pagination button {
+          margin: 0 0.25rem;
+          padding: 0.5rem 1rem;
+          border: 1px solid #ddd;
+          background-color: #fff;
+          color: #333;
+        }
+
+        .pagination button.active {
+          background-color: #4CAF50;
+          color: white;
+          border-color: #4CAF50;
+        }
+
+        input {
+          width: 100%;
+          padding: 0.5rem;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+          table, tr, td {
+            display: block;
+          }
+
+          tr {
+            margin-bottom: 1rem;
+          }
+
+          td {
+            border: none;
+            position: relative;
+            padding-left: 50%;
+          }
+
+          td:before {
+            content: attr(data-label);
+            position: absolute;
+            left: 6px;
+            width: 45%;
+            padding-right: 10px;
+            white-space: nowrap;
+            font-weight: bold;
+          }
+
+          th {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }

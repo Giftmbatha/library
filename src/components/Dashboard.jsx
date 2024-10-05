@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Grid, Paper, Typography } from '@mui/material';
+
+import '../css/dashboard.css'
 
 function Dashboard() {
   const [bookCount, setBookCount] = useState(0);
@@ -9,42 +9,42 @@ function Dashboard() {
 
   useEffect(() => {
     // Fetch total books
-    axios.get('http://localhost:5000/api/books')
-      .then(response => setBookCount(response.data.length))
+    fetch('http://localhost:5000/api/books')
+      .then(response => response.json())
+      .then(data => setBookCount(data.length))
       .catch(error => console.error('Error fetching books:', error));
 
     // Fetch total members
-    axios.get('http://localhost:5000/api/members')
-      .then(response => setMemberCount(response.data.length))
+    fetch('http://localhost:5000/api/members')
+      .then(response => response.json())
+      .then(data => setMemberCount(data.length))
       .catch(error => console.error('Error fetching members:', error));
 
     // Fetch total loans
-    axios.get('http://localhost:5000/api/loans')
-      .then(response => setLoanCount(response.data.length))
+    fetch('http://localhost:5000/api/loans')
+      .then(response => response.json())
+      .then(data => setLoanCount(data.length))
       .catch(error => console.error('Error fetching loans:', error));
   }, []);
 
   return (
-    <Grid container spacing={4} style={{ marginTop: '2rem' }}>
-      <Grid item xs={12} sm={4}>
-        <Paper elevation={3} style={{ padding: '1.5rem', textAlign: 'center' }}>
-          <Typography variant="h6">Total Books</Typography>
-          <Typography variant="h4" color="primary">{bookCount}</Typography>
-        </Paper>
-      </Grid>
-      <Grid item xs={12} sm={4}>
-        <Paper elevation={3} style={{ padding: '1.5rem', textAlign: 'center' }}>
-          <Typography variant="h6">Total Members</Typography>
-          <Typography variant="h4" color="primary">{memberCount}</Typography>
-        </Paper>
-      </Grid>
-      <Grid item xs={12} sm={4}>
-        <Paper elevation={3} style={{ padding: '1.5rem', textAlign: 'center' }}>
-          <Typography variant="h6">Books on Loan</Typography>
-          <Typography variant="h4" color="primary">{loanCount}</Typography>
-        </Paper>
-      </Grid>
-    </Grid>
+    <div className="dashboard">
+      <h2 className="dashboard-title">Dashboard</h2>
+      <div className="dashboard-grid">
+        <div className="dashboard-card">
+          <h3 className="card-title">Total Books</h3>
+          <p className="card-value">{bookCount}</p>
+        </div>
+        <div className="dashboard-card">
+          <h3 className="card-title">Total Members</h3>
+          <p className="card-value">{memberCount}</p>
+        </div>
+        <div className="dashboard-card">
+          <h3 className="card-title">Books on Loan</h3>
+          <p className="card-value">{loanCount}</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
