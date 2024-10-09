@@ -65,8 +65,8 @@ app.get('/api/loans', (req, res) => {
 });
 
 app.post('/api/loans', (req, res) => {
-  const { BookID, MemberID, CheckoutDate } = req.body;
-  db.query('INSERT INTO Loans (BookID, MemberID, CheckoutDate) VALUES (?, ?, ?)', [BookID, MemberID, CheckoutDate], (err, result) => {
+  const { BookID, MemberID, CheckoutDate, returnDate } = req.body;
+  db.query('INSERT INTO Loans (BookID, MemberID, CheckoutDate, ReturnDate) VALUES (?, ?, ?, ?)', [BookID, MemberID, CheckoutDate, returnDate], (err, result) => {
     if (err) res.status(500).json({ error: err.message });
     else res.json({ id: result.insertId, message: 'Loan recorded successfully' });
   });

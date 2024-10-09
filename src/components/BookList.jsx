@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FaSearch, FaEdit, FaTrash, FaSave, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 function BookList() {
   const [books, setBooks] = useState([]);
@@ -69,60 +70,83 @@ function BookList() {
   return (
     <div className="book-list">
       <h2>Book List</h2>
-      <input
-        type="text"
-        placeholder="Search books"
-        value={searchTerm}
-        onChange={handleSearchChange}
-        className="search-input"
-      />
-      <table>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>ISBN</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentBooks.map(book => (
-            <tr key={book.BookID}>
-              <td>{editingBook && editingBook.BookID === book.BookID ? 
-                <input name="Title" value={editingBook.Title} onChange={handleChange} /> : 
-                book.Title}
-              </td>
-              <td>{editingBook && editingBook.BookID === book.BookID ? 
-                <input name="Author" value={editingBook.Author} onChange={handleChange} /> : 
-                book.Author}
-              </td>
-              <td>{editingBook && editingBook.BookID === book.BookID ? 
-                <input name="ISBN" value={editingBook.ISBN} onChange={handleChange} /> : 
-                book.ISBN}
-              </td>
-              <td>
-                {editingBook && editingBook.BookID === book.BookID ? (
-                  <>
-                    <button onClick={handleSave}>Save</button>
-                    <button onClick={() => setEditingBook(null)}>Cancel</button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={() => handleEdit(book)}>Edit</button>
-                    <button onClick={() => handleDelete(book.BookID)}>Delete</button>
-                  </>
-                )}
-              </td>
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Search books"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="search-input"
+        />
+        <FaSearch className="search-icon" />
+      </div>
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>ISBN</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {currentBooks.map(book => (
+              <tr key={book.BookID}>
+                <td>
+                  {editingBook && editingBook.BookID === book.BookID ? 
+                    <input name="Title" value={editingBook.Title} onChange={handleChange} /> : 
+                    book.Title
+                  }
+                </td>
+                <td>
+                  {editingBook && editingBook.BookID === book.BookID ? 
+                    <input name="Author" value={editingBook.Author} onChange={handleChange} /> : 
+                    book.Author
+                  }
+                </td>
+                <td>
+                  {editingBook && editingBook.BookID === book.BookID ? 
+                    <input name="ISBN" value={editingBook.ISBN} onChange={handleChange} /> : 
+                    book.ISBN
+                  }
+                </td>
+                <td>
+                  {editingBook && editingBook.BookID === book.BookID ? (
+                    <>
+                      <button onClick={handleSave} className="save-btn"><FaSave /> Save</button>
+                      <button onClick={() => setEditingBook(null)} className="cancel-btn"><FaTimes /> Cancel</button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => handleEdit(book)} className="edit-btn"><FaEdit /> Edit</button>
+                      <button onClick={() => handleDelete(book.BookID)} className="delete-btn"><FaTrash /> Delete</button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <div className="pagination">
-        {Array.from({ length: Math.ceil(filteredBooks.length / booksPerPage) }, (_, i) => (
-          <button key={i} onClick={() => paginate(i + 1)} className={currentPage === i + 1 ? 'active' : ''}>
-            {i + 1}
-          </button>
-        ))}
+        <button 
+          onClick={() => paginate(currentPage - 1)} 
+          disabled={currentPage === 1}
+          className="page-btn"
+        >
+          <FaChevronLeft /> Previous
+        </button>
+        <span className="page-info">
+          Page {currentPage} of {Math.ceil(filteredBooks.length / booksPerPage)}
+        </span>
+        <button 
+          onClick={() => paginate(currentPage + 1)} 
+          disabled={currentPage === Math.ceil(filteredBooks.length / booksPerPage)}
+          className="page-btn"
+        >
+          Next <FaChevronRight />
+        </button>
       </div>
 
       <style jsx>{`
@@ -130,42 +154,73 @@ function BookList() {
           max-width: 1000px;
           margin: 0 auto;
           padding: 2rem;
+          font-family: 'Roboto', Arial, sans-serif;
+          
         }
 
         h2 {
           text-align: center;
-          color: #333;
+          color: #ffff;
           margin-bottom: 2rem;
+          font-size: 2rem;
+          font-weight: bold;
+        }
+
+        .search-container {
+          position: relative;
+          margin-bottom: 1rem;
         }
 
         .search-input {
           width: 100%;
-          padding: 0.5rem;
-          margin-bottom: 1rem;
-          border: 1px solid #ddd;
+          padding: 0.75rem 1rem 0.75rem 2.5rem;
+          font-size: 1rem;
+          border: 1px solid #bdc3c7;
           border-radius: 4px;
+          transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+          outline: none;
+          border-color: #3498db;
+        }
+
+        .search-icon {
+          position: absolute;
+          left: 0.75rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #7f8c8d;
+        }
+
+        .table-container {
+          overflow-x: auto;
+          background-color: #fff;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         table {
           width: 100%;
           border-collapse: collapse;
-          background-color: #fff;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         th, td {
           padding: 1rem;
           text-align: left;
-          border-bottom: 1px solid #ddd;
+          border-bottom: 1px solid #ecf0f1;
         }
 
         th {
-          background-color: #f8f8f8;
+          background-color:#3f51b5;
+          color: #fff;
           font-weight: bold;
+          text-transform: uppercase;
+          font-size: 0.85rem;
         }
 
         tr:hover {
-          background-color: #f5f5f5;
+          background-color: #f5f7fa;
         }
 
         button {
@@ -174,77 +229,92 @@ function BookList() {
           border: none;
           border-radius: 4px;
           cursor: pointer;
-          transition: background-color 0.3s ease;
+          transition: background-color 0.3s ease, transform 0.1s ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
         }
 
         button:hover {
-          opacity: 0.8;
+          transform: translateY(-1px);
         }
 
-        button:first-child {
-          background-color: #4CAF50;
+        button:active {
+          transform: translateY(0);
+        }
+
+        .edit-btn {
+          background-color: #2ecc71;
           color: white;
         }
 
-        button:last-child {
-          background-color: #f44336;
+        .delete-btn {
+          background-color: #e74c3c;
+          color: white;
+        }
+
+        .save-btn {
+          background-color: #3498db;
+          color: white;
+        }
+
+        .cancel-btn {
+          background-color: #95a5a6;
           color: white;
         }
 
         .pagination {
           display: flex;
-          justify-content: center;
+          justify-content: space-between;
+          align-items: center;
           margin-top: 2rem;
         }
 
-        .pagination button {
-          margin: 0 0.25rem;
+        .page-btn {
+          background-color: #3498db;
+          color: white;
           padding: 0.5rem 1rem;
-          border: 1px solid #ddd;
-          background-color: #fff;
-          color: #333;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
         }
 
-        .pagination button.active {
-          background-color: #4CAF50;
-          color: white;
-          border-color: #4CAF50;
+        .page-btn:disabled {
+          background-color: #bdc3c7;
+          cursor: not-allowed;
+        }
+
+        .page-info {
+          font-size: 0.9rem;
+          color: #7f8c8d;
         }
 
         input {
           width: 100%;
           padding: 0.5rem;
-          border: 1px solid #ddd;
+          border: 1px solid #bdc3c7;
           border-radius: 4px;
+          font-size: 1rem;
         }
 
         @media (max-width: 768px) {
-          table, tr, td {
-            display: block;
+          .book-list {
+            padding: 1rem;
           }
 
-          tr {
-            margin-bottom: 1rem;
+          th, td {
+            padding: 0.75rem 0.5rem;
           }
 
-          td {
-            border: none;
-            position: relative;
-            padding-left: 50%;
+          .pagination {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
           }
 
-          td:before {
-            content: attr(data-label);
-            position: absolute;
-            left: 6px;
-            width: 45%;
-            padding-right: 10px;
-            white-space: nowrap;
-            font-weight: bold;
-          }
-
-          th {
-            display: none;
+          .page-btn {
+            width: 100%;
           }
         }
       `}</style>
