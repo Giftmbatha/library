@@ -287,7 +287,7 @@ function BookList() {
 
         .page-info {
           font-size: 0.9rem;
-          color: #7f8c8d;
+          color: #fff;
         }
 
         input {
